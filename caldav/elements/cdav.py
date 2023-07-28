@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
+import logging
 from datetime import datetime
 
 try:
@@ -32,8 +33,12 @@ def _to_utc_date_string(ts):
             ## not able to treat it as localtime.
             import tzlocal
 
-            ts = ts.replace(tzinfo=tzlocal.get_localzone())
-            ts = ts.astimezone(utc_tz)
+            try:
+                ts = ts.replace(tzinfo=tzlocal.get_localzone())
+                ts = ts.astimezone(utc_tz)
+            except OverflowError:
+                logging.error("Cannot coerce datetime %s to UTC. Changed to zero-date.", ts)
+                ts = datetime(1, 1, 1, 0, 0, 0, tzinfo=utc_tz)
 
     return ts.strftime("%Y%m%dT%H%M%SZ")
 
